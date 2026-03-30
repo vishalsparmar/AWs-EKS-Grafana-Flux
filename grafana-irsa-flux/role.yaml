@@ -1,0 +1,25 @@
+apiVersion: iam.services.k8s.aws/v1alpha1
+kind: Role
+metadata:
+  name: grafana-irsa
+spec:
+  name: grafana-irsa
+  assumeRolePolicyDocument: |
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Federated": "arn:aws:iam::<ACCOUNT_ID>:oidc-provider/<OIDC>"
+          },
+          "Action": "sts:AssumeRoleWithWebIdentity",
+          "Condition": {
+            "StringEquals": {
+              "<OIDC>:sub": "system:serviceaccount:monitoring:grafana",
+              "<OIDC>:aud": "sts.amazonaws.com"
+            }
+          }
+        }
+      ]
+    }

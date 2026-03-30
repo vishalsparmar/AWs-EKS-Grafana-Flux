@@ -1,0 +1,9 @@
+apiVersion: iam.services.k8s.aws/v1alpha1
+kind: RolePolicyAttachment
+metadata:
+  name: grafana-eks-readonly
+spec:
+  roleRef:
+    from:
+      name: grafana-irsa
+  policyARN: arn:aws:iam::aws:policy/AmazonEKSReadOnlyAccess
