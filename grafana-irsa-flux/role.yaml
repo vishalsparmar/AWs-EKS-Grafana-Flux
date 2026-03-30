@@ -23,3 +23,51 @@ spec:
         }
       ]
     }
+
+  policies:
+    - name: grafana-inline-cloudwatch-eks
+      policyDocument: |
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+
+            // --- CloudWatch Metrics ---
+            {
+              "Effect": "Allow",
+              "Action": [
+                "cloudwatch:GetMetricData",
+                "cloudwatch:GetMetricStatistics",
+                "cloudwatch:ListMetrics"
+              ],
+              "Resource": "*"
+            },
+
+            // --- CloudWatch Logs ---
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams",
+                "logs:GetLogEvents",
+                "logs:StartQuery",
+                "logs:GetQueryResults"
+              ],
+              "Resource": "*"
+            },
+
+            // --- EKS ReadOnly ---
+            {
+              "Effect": "Allow",
+              "Action": [
+                "eks:DescribeCluster",
+                "eks:ListClusters",
+                "eks:ListNodegroups",
+                "eks:DescribeNodegroup",
+                "eks:ListFargateProfiles",
+                "eks:DescribeFargateProfile"
+              ],
+              "Resource": "*"
+            }
+
+          ]
+        }
