@@ -1,0 +1,51 @@
+terraform_status:
+  stage: deploy
+  image: alpine:latest
+
+  variables:
+    TFC_API: "https://app.terraform.io/api/v2"
+
+  before_script:
+    - apk add --no-cache curl jq
+
+  script:
+    - echo "Fetching workspace ID..."
+    - |
+      WORKSPACE_ID=$(curl -s \
+        -H "Authorization: Bearer $TFC_TOKEN" \
+        $TFC_API/organizations/$TFC_ORG/workspaces/$TFC_WORKSPACE \
+        | jq -r '.data.id')
+
+    - echo "Workspace ID: $WORKSPACE_ID"
+
+    - echo "Polling latest Terraform run..."
+    - |
+      while true; do
+        RUN_JSON=$(curl -s \
+          -H "Authorization: Bearer $TFC_TOKEN" \
+          "$TFC_API/workspaces/$WORKSPACE_ID/runs")
+
+        RUN_ID=$(echo $RUN_JSON | jq -r '.data[0].id')
+        STATUS=$(echo $RUN_JSON | jq -r '.data[0].attributes.status')
+
+        echo "Latest Run: $RUN_ID | Status: $STATUS"
+
+        case "$STATUS" in
+          applied)
+            echo "✅ Terraform apply succeeded"
+            exit 0
+            ;;
+          planned_and_finished)
+            echo "✅ Plan succeeded (no changes)"
+            exit 0
+            ;;
+          errored|canceled)
+            echo "❌ Terraform run failed"
+            exit 1
+            ;;
+          *)
+            echo "⏳ Waiting for run to complete..."
+            sleep 10
+            ;;
+        esac
+      done
